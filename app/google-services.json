@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "415168185071",
+    "firebase_url": "https://mallmate4-default-rtdb.firebaseio.com",
+    "project_id": "mallmate4",
+    "storage_bucket": "mallmate4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:415168185071:android:7a84bf15700cf8a3e6d11a",
+        "android_client_info": {
+          "package_name": "com.example.mallmate40"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDT8eYyr4xp9ZP12nqjpg4DcLXDcJQloN0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
