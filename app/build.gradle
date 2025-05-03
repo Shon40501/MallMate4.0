@@ -50,6 +50,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-database'
     implementation 'com.google.firebase:firebase-firestore'
 
+    implementation 'com.google.android.gms:play-services-maps:18.2.0'
+
     // אם אתה באמת צריך להשתמש ב-libs.firebase.database, הסר את השורה הקודמת של firebase-database
     // implementation libs.firebase.database
 }

@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
     private TextView statusTextView;
     private TextView pointsCountTextView;
 
+
     // שירותים ומנהלים
     private LocationPermissionManager permissionManager;
     private LocationService locationService;
@@ -71,6 +72,17 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
         stopTrackingButton = findViewById(R.id.stopTrackingButton);
         statusTextView = findViewById(R.id.statusTextView);
         pointsCountTextView = findViewById(R.id.pointsCountTextView);
+        Button showMapButton = findViewById(R.id.showMapButton);
+
+        showMapButton.setOnClickListener(v -> {
+            Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
+
+            // אם יש ברשותך מסלול שאתה רוצה להעביר
+            // mapIntent.putExtra("current_path", currentPath); // צריך לממש Parcelable
+
+            startActivity(mapIntent);
+        });
+
 
         // אתחול מנהל ההרשאות
         permissionManager = new LocationPermissionManager(this, this);

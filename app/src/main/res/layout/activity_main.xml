@@ -61,6 +61,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/startTrackingButton" />
 
+    <Button
+        android:id="@+id/showMapButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="הצג מפה"
+        app:layout_constraintTop_toBottomOf="@id/stopTrackingButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp" />
+
+
     <!-- אפשר להוסיף כאן רכיב מפה לתצוגת המסלול -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
