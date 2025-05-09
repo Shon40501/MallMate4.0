@@ -201,15 +201,19 @@ public class LocationService extends Service {
 
 
     private Notification createNotification() {
+        // וודא שיש לך ערוץ התראות תקין
+        createNotificationChannel();
+
         Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
+                notificationIntent, PendingIntent.FLAG_IMMUTABLE);
 
         return new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Mallmate 4.0")
-                .setContentText("שירות מעקב מיקום פעיל")
+                .setContentTitle("MallMate 4.0")
+                .setContentText("מעקב מיקום פעיל")
+                .setSmallIcon(android.R.drawable.ic_menu_mylocation)  // שימוש באייקון מובנה
                 .setContentIntent(pendingIntent)
-                .setSmallIcon(android.R.drawable.ic_menu_mylocation)
+                .setOngoing(true)  // חשוב: מונע מהמשתמש למחוק את ההתראה
                 .build();
     }
 
@@ -218,7 +222,7 @@ public class LocationService extends Service {
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Mallmate 4.0")
                 .setContentText(contentText)
-                .setSmallIcon(android.R.drawable.ic_menu_mylocation)
+                    .setSmallIcon(android.R.drawable.ic_menu_mylocation)
                 .build();
 
         NotificationManager notificationManager = getSystemService(NotificationManager.class);

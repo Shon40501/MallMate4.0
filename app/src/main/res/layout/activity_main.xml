@@ -62,6 +62,21 @@
         app:layout_constraintTop_toBottomOf="@+id/startTrackingButton" />
 
     <Button
+        android:id="@+id/savePointButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="76dp"
+        android:layout_marginEnd="32dp"
+        android:enabled="false"
+        android:text="שמור נקודה"
+        android:textColor="#FFFFFF"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/stopTrackingButton" />
+
+    <Button
         android:id="@+id/showMapButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

@@ -11,8 +11,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import android.content.DialogInterface;
+import android.text.InputType;
+import android.widget.EditText;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements LocationPermissionManager.PermissionCallback {
 
@@ -23,6 +28,8 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
     private Button stopTrackingButton;
     private TextView statusTextView;
     private TextView pointsCountTextView;
+    private PointOfInterestManager poiManager; // של המחלקה POIM
+    private Button savePointButton; // של המחלקה POIM
 
 
     // שירותים ומנהלים
@@ -67,20 +74,25 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        poiManager = new PointOfInterestManager();
+
+
         // אתחול רכיבי ממשק משתמש
         startTrackingButton = findViewById(R.id.startTrackingButton);
         stopTrackingButton = findViewById(R.id.stopTrackingButton);
         statusTextView = findViewById(R.id.statusTextView);
         pointsCountTextView = findViewById(R.id.pointsCountTextView);
         Button showMapButton = findViewById(R.id.showMapButton);
+        savePointButton = findViewById(R.id.savePointButton);
+
 
         showMapButton.setOnClickListener(v -> {
             Intent mapIntent = new Intent(MainActivity.this, MapsActivity.class);
-
-            // אם יש ברשותך מסלול שאתה רוצה להעביר
-            // mapIntent.putExtra("current_path", currentPath); // צריך לממש Parcelable
-
             startActivity(mapIntent);
+        });
+
+        savePointButton.setOnClickListener(v -> {
+            showSavePointDialog();
         });
 
 
@@ -119,18 +131,18 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
     protected void onStop() {
         super.onStop();
 
-        // עצירת עדכוני UI
-        statusTextView.removeCallbacks(pointCountUpdater);
-
-        // שחרור הקישור לשירות אך השארת השירות פועל ברקע אם עדיין מבצע מעקב
-        if (isLocationServiceBound && locationService != null) {
-            if (!locationService.isTracking()) {
+        // אל תנתק את השירות אם הוא עדיין במצב מעקב
+        if (isLocationServiceBound) {
+            if (locationService != null && locationService.isTracking()) {
+                // ניתוק מהשירות אבל השארת השירות פעיל
+                unbindService(serviceConnection);
+                isLocationServiceBound = false;
+            } else {
+                // אם לא במצב מעקב, ניתוק וסגירת השירות
                 unbindService(serviceConnection);
                 stopService(new Intent(this, LocationService.class));
-            } else {
-                unbindService(serviceConnection);
+                isLocationServiceBound = false;
             }
-            isLocationServiceBound = false;
         }
     }
 
@@ -237,6 +249,9 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
         startTrackingButton.setEnabled(hasPermissions && !isTracking);
         stopTrackingButton.setEnabled(hasPermissions && isTracking);
 
+        savePointButton.setEnabled(hasPermissions && isTracking);
+
+
         // עדכון טקסט סטטוס
         if (!hasPermissions) {
             statusTextView.setText("נדרשות הרשאות מיקום");
@@ -249,4 +264,67 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
             pointsCountTextView.setText("");
         }
     }
+
+
+    // פעולות שקשורות לPOIM
+    private void showSavePointDialog() {
+        if (locationService == null || !locationService.isTracking()) {
+            Toast.makeText(this, "יש להפעיל מעקב מיקום תחילה", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // יצירת תיבת דיאלוג
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("שמירת נקודת עניין");
+
+        // הוספת שדה טקסט להזנת שם
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setHint("הזן שם לנקודה (לדוגמה: כיתה 101)");
+        builder.setView(input);
+
+        // כפתור אישור
+        builder.setPositiveButton("שמור", (dialog, which) -> {
+            // קבלת השם שהוזן
+            String pointName = input.getText().toString().trim();
+
+            if (pointName.isEmpty()) {
+                Toast.makeText(this, "נא להזין שם לנקודה", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // קבלת המיקום הנוכחי
+            Path currentPath = locationService.getCurrentPath();
+            if (currentPath != null && !currentPath.getPoints().isEmpty()) {
+                // קבלת הנקודה האחרונה (המיקום הנוכחי)
+                List<Point> points = currentPath.getPoints();
+                Point currentPoint = points.get(points.size() - 1);
+
+                // שמירת הנקודה בדאטאבייס
+                boolean saved = poiManager.savePointOfInterest(
+                        pointName,
+                        currentPoint.getX(),
+                        currentPoint.getY(),
+                        currentPoint.getZ()
+                );
+
+                if (saved) {
+                    Toast.makeText(this, "נקודה נשמרה: " + pointName, Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "שגיאה בשמירת הנקודה", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(this, "לא ניתן לקבל את המיקום הנוכחי", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // כפתור ביטול
+        builder.setNegativeButton("ביטול", (dialog, which) -> dialog.cancel());
+
+        // הצגת הדיאלוג
+        builder.show();
+    }
+
+
 }
+

@@ -1,10 +1,12 @@
 package com.example.mallmate40;
 
 public class Point {
-    private double x;
-    private double y;
-    private double z;
+    public double x;
+    public double y;
+    public double z;
 
+    // Required empty constructor for Firebase
+    public Point() {}
 
     // Constructor
     public Point(double x, double y, double z) {
@@ -13,18 +15,14 @@ public class Point {
         this.z = z;
     }
 
+    //  getters and setters 
+    public double getX() { return x; }
+    public void setX(double x) { this.x = x; }
 
-    // Getters
-    public double getX() {
-        return x;
-    }
+    public double getY() { return y; }
+    public void setY(double y) { this.y = y; }
 
-    public double getY() {
-        return y;
-    }
-
-    public double getZ() {
-        return z;
-    }
+    public double getZ() { return z; }
+    public void setZ(double z) { this.z = z; }
 
 }
