@@ -257,25 +257,40 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return points;
     }
 
-    // Finds if both points exist in the same path
+    // Finds the indices of the closest points in the path to the given points, with a 5-meter threshold
     private int[] findPointIndices(List<Point> pathPoints, Point point1, Point point2) {
-        int index1 = -1;
-        int index2 = -1;
-
-        for (int i = 0; i < pathPoints.size(); i++) {
-            Point p = pathPoints.get(i);
-            if (arePointsEqual(p, point1)) index1 = i;
-            if (arePointsEqual(p, point2)) index2 = i;
-        }
-
+        int index1 = findClosestPointIndex(pathPoints, point1, 5.0); // 5 meters
+        int index2 = findClosestPointIndex(pathPoints, point2, 5.0); // 5 meters
         return (index1 != -1 && index2 != -1) ? new int[]{index1, index2} : null;
     }
 
-    // Compares two points with tolerance
-    private boolean arePointsEqual(Point a, Point b) {
-        return Math.abs(a.x - b.x) < 0.0001 &&
-                Math.abs(a.y - b.y) < 0.0001 &&
-                a.z == b.z;
+    // Helper to find the index of the closest point in the path to the given point, within a threshold (meters)
+    private int findClosestPointIndex(List<Point> pathPoints, Point target, double thresholdMeters) {
+        int closestIndex = -1;
+        double minDistance = Double.MAX_VALUE;
+        for (int i = 0; i < pathPoints.size(); i++) {
+            Point p = pathPoints.get(i);
+            double dist = haversineDistanceMeters(p.x, p.y, target.x, target.y);
+            if (dist < minDistance) {
+                minDistance = dist;
+                closestIndex = i;
+            }
+        }
+        // Only accept if within threshold
+        if (minDistance > thresholdMeters) return -1;
+        return closestIndex;
+    }
+
+    // Haversine formula to calculate distance between two lat/lon points in meters
+    private double haversineDistanceMeters(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371000; // Earth radius in meters
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     }
 
     // Draws the path segment between two indices
