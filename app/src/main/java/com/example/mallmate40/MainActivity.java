@@ -296,16 +296,32 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
             // קבלת המיקום הנוכחי
             Path currentPath = locationService.getCurrentPath();
             if (currentPath != null && !currentPath.getPoints().isEmpty()) {
-                // קבלת הנקודה האחרונה (המיקום הנוכחי)
                 List<Point> points = currentPath.getPoints();
                 Point currentPoint = points.get(points.size() - 1);
+
+                // Find the closest path point to the current location (within 5 meters)
+                int closestIndex = -1;
+                double minDistance = Double.MAX_VALUE;
+                for (int i = 0; i < points.size(); i++) {
+                    Point p = points.get(i);
+                    double dist = haversineDistanceMeters(p.getX(), p.getY(), currentPoint.getX(), currentPoint.getY());
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        closestIndex = i;
+                    }
+                }
+                if (minDistance > 5.0) { // 5 meters threshold
+                    Toast.makeText(this, "אתה רחוק מדי מהמסלול כדי לשמור נקודת עניין", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                Point snapPoint = points.get(closestIndex);
 
                 // שמירת הנקודה בדאטאבייס
                 boolean saved = poiManager.savePointOfInterest(
                         pointName,
-                        currentPoint.getX(),
-                        currentPoint.getY(),
-                        currentPoint.getZ()
+                        snapPoint.getX(),
+                        snapPoint.getY(),
+                        snapPoint.getZ()
                 );
 
                 if (saved) {
@@ -325,6 +341,17 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
         builder.show();
     }
 
+    // Haversine formula to calculate distance between two lat/lon points in meters
+    private double haversineDistanceMeters(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371000; // Earth radius in meters
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
 
 }
 
