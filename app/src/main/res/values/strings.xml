@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">MallMate4.0</string>
+    <string name="app_name">ROOMRADAR</string>
+    <string name="subtitle">Your smart indoor navigation assistant</string>
+    <string name="fun_message">Track, learn, and never get lost again! 🚀</string>
 </resources>
