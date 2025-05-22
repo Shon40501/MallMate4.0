@@ -39,7 +39,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String TAG = "MapsActivity";
     private GoogleMap mMap;
     private Button navigateToButton;
-    private Button backToMainButton;
+    private Button goToLearningButton;
     private PointOfInterestManager poiManager;
 
     @Override
@@ -51,7 +51,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         navigateToButton = findViewById(R.id.navigateToButton);
-        backToMainButton = findViewById(R.id.backToMainButton);
+        goToLearningButton = findViewById(R.id.goToLearningButton);
 
         // Initialize Point of Interest Manager
         poiManager = new PointOfInterestManager();
@@ -73,10 +73,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Set up button click listeners
         navigateToButton.setOnClickListener(v -> showSavedPointsDialog());
-        backToMainButton.setOnClickListener(v -> {
+        goToLearningButton.setOnClickListener(v -> {
             Intent intent = new Intent(MapsActivity.this, MainActivity.class);
             startActivity(intent);
-            finish();
         });
 
         if (mapFragment != null) {
@@ -190,8 +189,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             .title("Your Location")
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
 
-                    // Display path between points
-                    displayPathBetweenPoints(userLocation, selectedPoint);
+                    // Display path between points with fallback to rounded location
+                    displayPathWithFallback(userLocation, selectedPoint);
                 } else {
                     Toast.makeText(MapsActivity.this,
                             "Could not get current location",
@@ -203,13 +202,46 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Toast.makeText(this, "נבחר: " + pointName, Toast.LENGTH_SHORT).show();
     }
 
-    // Add this helper method (you'll need to implement the actual floor detection)
-    private int getCurrentFloor() {
-        // TODO: Implement your floor detection logic
-        // For now, return 0 as default floor
-        return 0;
+    private void displayPathWithFallback(Point userLocation, Point selectedPoint) {
+        displayPathBetweenPoints(userLocation, selectedPoint, new PathCallback() {
+            @Override
+            public void onPathFound() {
+                // Path found, nothing else to do
+            }
+
+            @Override
+            public void onPathNotFound() {
+                // Try with rounded location
+                double roundedLat = Math.round(userLocation.x * 1000.0) / 1000.0;
+                double roundedLng = Math.round(userLocation.y * 1000.0) / 1000.0;
+                Point roundedLocation = new Point(roundedLat, roundedLng, userLocation.z);
+
+                if (roundedLat == userLocation.x && roundedLng == userLocation.y) {
+                    // Already tried rounded location, avoid infinite loop
+                    Toast.makeText(MapsActivity.this,
+                            "No connecting path found between these points",
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                displayPathBetweenPoints(roundedLocation, selectedPoint, new PathCallback() {
+                    @Override
+                    public void onPathFound() {
+                        // Path found with rounded location
+                    }
+
+                    @Override
+                    public void onPathNotFound() {
+                        Toast.makeText(MapsActivity.this,
+                                "No connecting path found between these points (even with nearby location)",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
     }
-    private void displayPathBetweenPoints(Point startPoint, Point endPoint) {
+
+    private void displayPathBetweenPoints(Point startPoint, Point endPoint, PathCallback callback) {
         DatabaseReference pathsRef = FirebaseDatabase.getInstance().getReference("paths");
         pathsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -227,16 +259,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
                 }
 
-                if (!pathFound) {
-                    Toast.makeText(MapsActivity.this,
-                            "No connecting path found between these points",
-                            Toast.LENGTH_SHORT).show();
+                if (pathFound) {
+                    if (callback != null) callback.onPathFound();
+                } else {
+                    if (callback != null) callback.onPathNotFound();
                 }
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 Log.e(TAG, "Error loading paths: " + databaseError.getMessage());
+                if (callback != null) callback.onPathNotFound();
             }
         });
     }
@@ -313,5 +346,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         builder.include(new LatLng(startPoint.x, startPoint.y));
         builder.include(new LatLng(endPoint.x, endPoint.y));
         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 100));
+    }
+
+    private interface PathCallback {
+        void onPathFound();
+        void onPathNotFound();
+    }
+
+    // Add this helper method (you'll need to implement the actual floor detection)
+    private int getCurrentFloor() {
+        // TODO: Implement your floor detection logic
+        // For now, return 0 as default floor
+        return 0;
     }
 }
