@@ -330,19 +330,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void drawPathBetweenIndices(List<Point> pathPoints, int startIdx, int endIdx) {
         int start = Math.min(startIdx, endIdx);
         int end = Math.max(startIdx, endIdx);
-
-        PolylineOptions options = new PolylineOptions()
-                .width(8)
-                .color(Color.BLUE);
-
+    
+        mMap.clear();
+    
+        // Add a marker for each point in the path segment
         for (int i = start; i <= end; i++) {
             Point p = pathPoints.get(i);
-            options.add(new LatLng(p.x, p.y));
+            mMap.addMarker(new MarkerOptions()
+                .position(new LatLng(p.x, p.y))
+                .title("Path Point " + (i + 1))
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
         }
-
-        mMap.clear();
-        mMap.addPolyline(options);
-        addLocationMarkers(pathPoints.get(start), pathPoints.get(end));
+    
+        // Optionally, zoom to fit all points
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        for (int i = start; i <= end; i++) {
+            Point p = pathPoints.get(i);
+            builder.include(new LatLng(p.x, p.y));
+        }
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 100));
     }
 
     // Adds start/end markers
@@ -370,7 +376,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // Add this helper method (you'll need to implement the actual floor detection)
     private int getCurrentFloor() {
-        // TODO: Implement your floor detection logic
         // For now, return 0 as default floor
         return 0;
     }
