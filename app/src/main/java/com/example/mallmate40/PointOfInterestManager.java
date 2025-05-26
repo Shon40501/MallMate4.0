@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * מחלקה לניהול נקודות עניין במבנה
+ * PointOfInterestManager handles saving, loading, and deleting points of interest in the Firebase database. It provides methods for managing user-defined locations within the app.
  */
 public class PointOfInterestManager {
 

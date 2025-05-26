@@ -19,6 +19,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.List;
 
+/**
+ * MainActivity is the main learning screen of the app. It allows the user to start and stop location tracking, save points of interest, and navigate to the map screen. It manages permissions, UI state, and interaction with the LocationService.
+ */
 public class MainActivity extends AppCompatActivity implements LocationPermissionManager.PermissionCallback {
 
     private String TAG = "MainActivity";
@@ -69,10 +72,14 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
         }
     };
 
+    /**
+     * Called when the activity is created. Initializes UI, permissions, and services.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         poiManager = new PointOfInterestManager();
 
@@ -117,6 +124,9 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
         startAndBindLocationService();
     }
 
+    /**
+     * Called when the activity becomes visible. Re-binds to the location service if needed.
+     */
     @Override
     protected void onStart() {
         super.onStart();
@@ -127,6 +137,9 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
         }
     }
 
+    /**
+     * Called when the activity is no longer visible. Unbinds or stops the location service as needed.
+     */
     @Override
     protected void onStop() {
         super.onStop();
@@ -146,6 +159,9 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
         }
     }
 
+    /**
+     * Called when the activity is destroyed. Ensures the location service is unbound.
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -159,6 +175,9 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
 
     // מימוש ממשק הרשאות
 
+    /**
+     * Callback for when location permissions are granted. Updates UI.
+     */
     @Override
     public void onPermissionsGranted() {
         Log.d(TAG, "Location permissions granted");
@@ -168,6 +187,9 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
         updateUIState();
     }
 
+    /**
+     * Callback for when location permissions are denied. Updates UI.
+     */
     @Override
     public void onPermissionsDenied() {
         Log.d(TAG, "Location permissions denied");
@@ -180,6 +202,9 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
     // מתודות פנימיות
 
 
+    /**
+     * Starts and binds the location service.
+     */
     private void startAndBindLocationService() {
         // התחלת השירות
         Intent serviceIntent = new Intent(this, LocationService.class);
@@ -190,11 +215,17 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
     }
 
 
+    /**
+     * Binds to the location service.
+     */
     private void bindLocationService() {
         Intent intent = new Intent(this, LocationService.class);
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
+    /**
+     * Starts location tracking if possible. Updates UI and shows toasts.
+     */
     private void startTracking() {
         Log.d(TAG, "startTracking: method started");
         if (locationService != null) {
@@ -215,6 +246,9 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
         }
     }
 
+    /**
+     * Stops location tracking, saves the path, and updates UI.
+     */
     private void stopTracking() {
         if (locationService != null) {
             locationService.stopTracking();
@@ -230,6 +264,9 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
     }
 
 
+    /**
+     * Updates the points count TextView with the number of collected points.
+     */
     private void updatePointsCount() {
         if (isLocationServiceBound && locationService != null && locationService.isTracking()) {
             Path currentPath = locationService.getCurrentPath();
@@ -241,6 +278,9 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
     }
 
 
+    /**
+     * Updates the UI state (buttons and status) based on permissions and tracking state.
+     */
     private void updateUIState() {
         boolean hasPermissions = permissionManager.hasBasicLocationPermissions();
         boolean isTracking = (locationService != null && locationService.isTracking());
@@ -267,12 +307,10 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
 
 
     // פעולות שקשורות לPOIM
+    /**
+     * Shows a dialog to save a point of interest. Handles saving logic.
+     */
     private void showSavePointDialog() {
-        if (locationService == null || !locationService.isTracking()) {
-            Toast.makeText(this, "יש להפעיל מעקב מיקום תחילה", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         // יצירת תיבת דיאלוג
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("שמירת נקודת עניין");
@@ -310,10 +348,6 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
                         closestIndex = i;
                     }
                 }
-                if (minDistance > 5.0) { // 5 meters threshold
-                    Toast.makeText(this, "אתה רחוק מדי מהמסלול כדי לשמור נקודת עניין", Toast.LENGTH_SHORT).show();
-                    return;
-                }
                 Point snapPoint = points.get(closestIndex);
 
                 // שמירת הנקודה בדאטאבייס
@@ -329,8 +363,6 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
                 } else {
                     Toast.makeText(this, "שגיאה בשמירת הנקודה", Toast.LENGTH_SHORT).show();
                 }
-            } else {
-                Toast.makeText(this, "לא ניתן לקבל את המיקום הנוכחי", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -341,7 +373,9 @@ public class MainActivity extends AppCompatActivity implements LocationPermissio
         builder.show();
     }
 
-    // Haversine formula to calculate distance between two lat/lon points in meters
+    /**
+     * Calculates the Haversine distance in meters between two lat/lon points.
+     */
     private double haversineDistanceMeters(double lat1, double lon1, double lat2, double lon2) {
         final int R = 6371000; // Earth radius in meters
         double dLat = Math.toRadians(lat2 - lat1);

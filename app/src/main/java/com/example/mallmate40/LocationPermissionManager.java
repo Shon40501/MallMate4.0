@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * מנהל הרשאות מיקום - מטפל בכל הקשור לבקשת הרשאות מיקום
+ * LocationPermissionManager handles all logic related to requesting, checking, and managing location permissions for the app. It provides user dialogs and callbacks for permission results.
  */
 public class LocationPermissionManager {
     private static final String TAG = "LocationPermissionMgr";

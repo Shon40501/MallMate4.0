@@ -25,6 +25,9 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
 
+/**
+ * LocationService is a foreground service that tracks the user's location, collects path points, and saves them to the database. It manages location updates and notification handling for background tracking.
+ */
 public class LocationService extends Service {
 
     private static final String TAG = "LocationService";

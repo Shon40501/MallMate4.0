@@ -8,6 +8,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+/**
+ * Path represents a collection of location points (a route) collected during tracking. It provides methods to add points, save the path to Firebase, and clear the path.
+ */
 public class Path {
     private ArrayList<Point> points;
     private DatabaseReference dbref;
