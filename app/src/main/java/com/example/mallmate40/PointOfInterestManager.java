@@ -14,44 +14,70 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * PointOfInterestManager handles saving, loading, and deleting points of interest in the Firebase database. It provides methods for managing user-defined locations within the app.
+ * Point of Interest Manager - responsible for saving, loading, and deleting points of interest
+ * in the Firebase database. Provides methods for managing user-defined locations within the application.
+ *
+ * @author Shon Aronov
+ * @version 1.0
+ * @since 1.0
  */
 public class PointOfInterestManager {
 
+    /** Tag used for logging purposes */
     private static final String TAG = "PointOfInterestManager";
 
-    // מסד נתונים לשמירת נקודות עניין
+    /** Database reference for storing points of interest */
     private DatabaseReference dbref;
 
     /**
-     * ממשק לקבלת תוצאות טעינה מהדאטאבייס
+     * Interface for receiving loading results from the database.
+     * Provides callbacks for successful data loading and error handling.
      */
     public interface LocationsLoadCallback {
+        /**
+         * Called when locations are successfully loaded from the database.
+         *
+         * @param locations list of location data containing name and Point objects
+         */
         void onLocationsLoaded(List<Map<String, Object>> locations);
+
+        /**
+         * Called when an error occurs during the loading process.
+         *
+         * @param error error message describing what went wrong
+         */
         void onError(String error);
     }
 
     /**
-     * קונסטרקטור - מאתחל את החיבור לדאטאבייס
+     * Constructor - initializes the Firebase database connection.
+     * Creates a reference to the "points_of_interest" branch in the database.
      */
     public PointOfInterestManager() {
-        // יצירת הפניה לענף "points_of_interest" במסד הנתונים
+        // Create reference to "points_of_interest" branch in the database
         this.dbref = FirebaseDatabase.getInstance().getReference("points_of_interest");
         Log.d(TAG, "Initialized with reference: " + dbref.toString());
     }
 
     /**
-     * שמירת נקודת עניין חדשה
+     * Saves a new point of interest to the database.
+     * The point is stored using the provided name as the key.
+     *
+     * @param name the name of the point of interest (cannot be empty or null)
+     * @param x the x-coordinate of the point
+     * @param y the y-coordinate of the point
+     * @param z the z-coordinate of the point
+     * @return true if the save operation was initiated successfully, false if the name is invalid
      */
     public boolean savePointOfInterest(String name, double x, double y, double z) {
         if (name == null || name.trim().isEmpty()) {
             return false;
         }
 
-        // יצירת אובייקט נקודה
+        // Create point object
         Point location = new Point(x, y, z);
 
-        // שמירה לדאטאבייס
+        // Save to database
         dbref.child(name).setValue(location)
                 .addOnSuccessListener(aVoid -> {
                     Log.d(TAG, "Point of interest saved successfully: " + name);
@@ -64,7 +90,11 @@ public class PointOfInterestManager {
     }
 
     /**
-     * מחיקת נקודת עניין*/
+     * Deletes a point of interest from the database by name.
+     * If the name is null or empty, no action is taken.
+     *
+     * @param name the name of the point of interest to delete
+     */
     public void deletePointOfInterest(String name) {
         if (name != null && !name.trim().isEmpty()) {
             dbref.child(name).removeValue();
@@ -72,8 +102,11 @@ public class PointOfInterestManager {
     }
 
     /**
-     * טוען את כל נקודות העניין השמורות
-     * @param callback ממשק לקבלת התוצאות
+     * Loads all saved points of interest from the database.
+     * Performs a single read operation on the database and returns results through a callback.
+     * Each location in the result contains both the name and the Point object.
+     *
+     * @param callback interface for receiving results - either a list of points of interest or an error message
      */
     public void loadSavedLocations(final LocationsLoadCallback callback) {
         Log.d(TAG, "Attempting to load points from Firebase");
